@@ -17,7 +17,6 @@ to generate this file without the comments in this block.
   , "effect"
   , "foldable-traversable"
   , "integers"
-  , "lists"
   , "maybe"
   , "node-buffer"
   , "node-fs"

@@ -2,21 +2,20 @@ module Day1
   (day1)
 where
 
-import Data.Array (length, toUnfoldable, sort, unzip, zip, (!!))
+import Data.Array (filter, length, sort, unzip, zip, (!!))
 import Data.Foldable (sum)
 import Data.Int (decimal, fromString, toStringAs)
-import Data.List (List)
 import Data.Ord (abs)
-import Data.Maybe
-import Data.String.Pattern
-import Data.String.Common (joinWith, split, trim)
+import Data.Maybe (Maybe(..))
+import Data.String.Pattern (Pattern(..))
+import Data.String.Common (split, trim)
 import Data.String.Utils (lines)
-import Data.Tuple
-import Effect
+import Data.Tuple (Tuple(..), fst, snd)
+import Effect (Effect)
 import Effect.Console (log)
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readTextFile)
-import Prelude (bind, discard, map, negate, show, Unit, (#), ($), (-), (<>), (/=) )
+import Prelude (bind, discard, map, negate, Unit, (#), ($), (-), (*), (==) )
 
 type Point = Tuple Int Int
 
@@ -39,6 +38,10 @@ splitFile content = trim content # lines # map (\x -> toPoint $ split patt x)
 distance :: Point -> Int
 distance p = abs $ (fst p) - (snd p)
 
+similarity :: Array Int -> Int -> Int
+similarity arr n = n * repeats
+  where repeats = filter (_ == n) arr # length
+
 day1 :: Effect Unit
 day1 = do
   inputFile <- readTextFile UTF8 "./data/input1.txt"
@@ -49,3 +52,8 @@ day1 = do
   let distances = map distance pairs
   let totalDistance = sum distances
   log $ toStringAs decimal totalDistance
+
+  -- part 2
+  let similarities = map (similarity $ snd ordered) (fst ordered)
+  let totalSim = sum similarities
+  log $ toStringAs decimal totalSim
