@@ -4,7 +4,7 @@ where
 
 import Data.Array (filter, length, sort, unzip, zip, (!!))
 import Data.Foldable (sum)
-import Data.Int (decimal, fromString, toStringAs)
+import Data.Int (decimal, toStringAs)
 import Data.Ord (abs)
 import Data.Maybe (Maybe(..))
 import Data.String.Pattern (Pattern(..))
@@ -17,16 +17,12 @@ import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readTextFile)
 import Prelude (bind, discard, map, negate, Unit, (#), ($), (-), (*), (==) )
 
+import Utils (fromMaybeString)
+
 type Point = Tuple Int Int
 
 separator :: String
 separator = "   "
-
-fromMaybeString :: Maybe String -> Int
-fromMaybeString Nothing = -1
-fromMaybeString (Just x) = case fromString x of
-  Nothing -> -1
-  Just n -> n
 
 toPoint :: Array String -> Point
 toPoint arr = Tuple (fromMaybeString $ arr !! 0) (fromMaybeString $ arr !! 1)
