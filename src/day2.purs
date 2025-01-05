@@ -14,7 +14,7 @@ import Effect (Effect)
 import Effect.Console (log)
 import Node.Encoding (Encoding(..))
 import Node.FS.Sync (readTextFile)
-import Prelude (Unit, bind, map, negate, (#), ($), (&&), (-), (>))
+import Prelude (Unit, bind, discard, map, negate, (#), ($), (&&), (-), (>), (||))
 
 splitFile :: String -> Array String
 splitFile content = trim content # lines
@@ -28,13 +28,25 @@ data Direction = Increasing | Decreasing
 direction :: Int -> Int -> Direction
 direction prev next = if prev > next then Decreasing else Increasing
 
-isValidReport :: List Int -> Boolean
-isValidReport l = go Nothing Nothing l where
-  go :: Maybe Int -> Maybe Direction -> List Int -> Boolean
-  go _ _ Nil = true
-  go Nothing _ (x : xs) = go (Just x) Nothing xs
-  go (Just prev) Nothing (x : xs) = if isValidRange (abs $ (prev - x)) then go (Just x) (Just $ direction prev x) xs else false
-  go (Just prev) (Just dir) (x : xs) = isValidValue prev x dir && go (Just x) (Just dir) xs
+-- TODO this function... is disgusting.
+isValidReport :: Boolean -> List Int -> Boolean
+isValidReport dampened l = go dampened Nothing Nothing l where
+  go :: Boolean -> Maybe Int -> Maybe Direction -> List Int -> Boolean
+  go _ _ _ Nil = true
+  go damp' Nothing _ (x : xs) = go damp' (Just x) Nothing xs
+  go damp' (Just prev) Nothing (x : xs) =
+    let
+      valid = isValidRange (abs $ (prev - x)) || damp'
+      allowDamp = isValidRange (abs $ (prev - x)) && damp'
+    in
+      if valid then go allowDamp (Just x) (Just $ direction prev x) xs else false
+  go damp' (Just prev) (Just dir) (x : xs) =
+    let inValidRange = isValidValue prev x  dir
+        valid = inValidRange || damp'
+        allowDamp = inValidRange && damp'
+    in
+        valid && go allowDamp (Just x) (Just dir) xs
+
 
 isValidRange :: Int -> Boolean
 isValidRange = between 1 3 
@@ -47,6 +59,11 @@ day2 :: Effect Unit
 day2 = do
   inputFile <- readTextFile UTF8 "./data/input2.txt"
   let reports = splitFile inputFile # map lineToList
-  let valids = map isValidReport reports # toUnfoldable
+
+  let valids = map (isValidReport false) reports # toUnfoldable
   let nbValid = filter (\x -> x) valids # length
   log $ toStringAs decimal nbValid
+
+  let validDampened = map (isValidReport true) reports # toUnfoldable
+  let nbValidDampened = filter (\x -> x) validDampened # length
+  log $ toStringAs decimal nbValidDampened
